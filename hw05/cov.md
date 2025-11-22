@@ -338,4 +338,92 @@ $$
 
 ---
 
+# راه حل
+
+[geeksforgeeks](https://www.geeksforgeeks.org/machine-learning/curse-of-dimensionality-in-machine-learning/)
+
+---
+
+1. **تکنیک‌های کاهش ابعاد (Dimensionality Reduction Techniques):**
+
+   **انتخاب ویژگی (Feature Selection):**
+   شناسایی و انتخاب مهم‌ترین و مرتبط‌ترین ویژگی‌ها از میان ویژگی‌های اصلی داده و حذف ویژگی‌های بی‌اهمیت یا تکراری.
+   این کار ابعاد داده را کاهش می‌دهد، مدل را ساده‌تر می‌کند و کارایی آن را بهبود می‌بخشد.
+
+   **استخراج ویژگی (Feature Extraction):**
+   تبدیل داده‌های پر‌بُعد اصلی به یک فضای کم‌بعد با ایجاد ویژگی‌های جدید که اطلاعات ضروری را حفظ می‌کنند.
+   روش‌هایی مانند **تحلیل مؤلفه‌های اصلی (PCA)** و **t-SNE** از رایج‌ترین تکنیک‌های استخراج ویژگی هستند.
+
+---
+
+2. **پیش‌پردازش داده (Data Preprocessing):**
+
+   **نرمال‌سازی (Normalization):**
+   مقیاس‌بندی ویژگی‌ها به بازه‌ای مشابه برای جلوگیری از این‌که برخی ویژگی‌ها (به‌ویژه در الگوریتم‌های مبتنی بر فاصله) بر بقیه غالب شوند.
+
+   **رسیدگی به داده‌های گمشده (Handling Missing Values):**
+   مدیریت داده‌های ناقص از طریق **میان‌یابی (Imputation)** یا **حذف** آن‌ها، تا فرآیند آموزش مدل مقاوم‌تر و پایدارتر شود.
+
+---
+
+```python
+import numpy as np
+import pandas as pd
+from sklearn.feature_selection import SelectKBest, f_classif, VarianceThreshold
+from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.impute import SimpleImputer
+
+df = pd.read_csv('your_dataset.csv')
+
+# Assuming 'X' contains your features and 'y' contains your target variable
+X = df.drop(columns=['Time', 'Pass/Fail'])
+y = df['Pass/Fail']
+
+# Remove constant features
+selector = VarianceThreshold()
+X_selected = selector.fit_transform(X)
+
+# Impute missing values
+imputer = SimpleImputer(strategy='mean')
+X_imputed = imputer.fit_transform(X_selected)
+
+# Perform feature selection
+selector_kbest = SelectKBest(score_func=f_classif, k=20)
+X_train_selected = selector_kbest.fit_transform(X_train_scaled, y_train)
+X_test_selected = selector_kbest.transform(X_test_scaled)
+
+# Perform dimensionality reduction
+pca = PCA(n_components=10)
+X_train_pca = pca.fit_transform(X_train_selected)
+X_test_pca = pca.transform(X_test_selected)
+
+# Train a classifier (e.g., Random Forest) without dimensionality reduction
+clf_before = RandomForestClassifier(n_estimators=100, random_state=42)
+clf_before.fit(X_train_scaled, y_train)
+
+# Make predictions and evaluate the model before dimensionality reduction
+y_pred_before = clf_before.predict(X_test_scaled)
+accuracy_before = accuracy_score(y_test, y_pred_before)
+print(f'Accuracy before dimensionality reduction: {accuracy_before}')
+# Train a classifier (e.g., Random Forest) on the reduced feature set
+clf_after = RandomForestClassifier(n_estimators=100, random_state=42)
+clf_after.fit(X_train_pca, y_train)
+
+# Make predictions and evaluate the model after dimensionality reduction
+y_pred_after = clf_after.predict(X_test_pca)
+accuracy_after = accuracy_score(y_test, y_pred_after)
+print(f'Accuracy after dimensionality reduction: {accuracy_after}')
+```
+
+```plain
+Accuracy before dimensionality reduction: 0.8745
+Accuracy after dimensionality reduction: 0.9235668789808917
+```
+
+
+
 </div>
